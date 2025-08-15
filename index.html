@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Illini Prompt Nurse</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', sans-serif; background-color: #fff5ee; color: #13294B; }
+
+    .gradient-bg {
+      background: linear-gradient(to bottom right, #FF552E, #13294B);
+      color: white;
+    }
+    .chat-bubble {
+      border-radius: 14px;
+      padding: 1rem 1.5rem;
+      max-width: 600px;
+      margin: 1rem auto;
+    }
+    .chat-left  { background: #FF552E; color: white; }
+    .chat-right { background: #F0F0F0; color: #13294B; }
+    .btn-orange {
+      background-color: #FF552E;
+      color: white;
+      padding: 0.75rem 1.25rem;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: background-color .15s ease;
+    }
+    .btn-orange:hover { background-color: #e2471e; }
+
+    /* Centered notice bar */
+    .notice-bar {
+      background: linear-gradient(to right, #FF552E, #13294B);
+      color: white;
+      text-align: center;
+      padding: 0.85rem;
+      font-weight: 500;
+    }
+
+    /* Background tape stripe */
+    .tape-wrap { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -10; }
+    .tape-wrap > div {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 200vw;
+      height: 12px;
+      transform: translateX(-50%) rotate(2deg);
+      background-image: linear-gradient(to bottom, rgba(74, 222, 128, .8), rgba(74, 222, 128, .3), rgba(236, 72, 153, .9));
+      filter: blur(20px);
+    }
+
+    /* Optional glow for logo */
+    .logo-glow { filter: drop-shadow(0 6px 18px rgba(19,41,75,.55)); }
+  </style>
+</head>
+<body class="relative">
+  <!-- Background tape -->
+  <div class="tape-wrap" aria-hidden="true">
+    <div></div>
+  </div>
+
+  <!-- Header -->
+  <header class="gradient-bg py-12 text-center z-50 shadow-md">
+    <div class="flex justify-center">
+      <img 
+        src="https://uploads.onecompiler.io/43th6tjt2/43ltkxmmky/ChatGPT%20Image%20Aug%2013,%202025,%2009_59_16%20AM.png"
+        alt="Illini Prompt Nurse Logo"
+        class="mb-4 w-28 h-auto shadow-lg logo-glow"
+        loading="lazy"
+      />
+    </div>
+    <h1 class="text-4xl font-bold">Illini Prompt Nurse</h1>
+    <p class="mt-4 text-lg">An AI triage assistant that drafts nurse-reviewed replies — reducing bottlenecks, not replacing care.</p>
+    <div class="mt-6 flex justify-center gap-4">
+      <a href="#example" class="btn-orange">View Example</a>
+      <a href="#partner" class="btn-orange">Sponsor the Pilot</a>
+    </div>
+  </header>
+
+  <!-- Centered notice bar -->
+  <section class="notice-bar">
+    ⚠️ Model does not provide diagnoses • Nurse-reviewed replies • Illini powered • Privacy-first • ⚠️
+  </section>
+
+  <!-- Problem -->
+  <section class="max-w-4xl mx-auto px-6 py-16">
+    <h2 class="text-3xl font-bold text-orange-600 mb-4">Problem We’re Solving</h2>
+    <p class="text-lg">Every day, UIUC students reach out to McKinley Health Center with simple health questions. Most of these don’t require a full appointment — but answering each message takes up valuable nurse time. This slows down care and increases student frustration.</p>
+  </section>
+
+  <!-- Example -->
+  <section id="example" class="scroll-mt-40 max-w-4xl mx-auto px-6 py-16 bg-orange-50 rounded-xl shadow-md">
+    <h2 class="text-3xl font-bold text-orange-600 mb-6">Example Use Case</h2>
+    <div class="chat-bubble chat-left">
+      <strong>Student:</strong> I have a sore throat and a low-grade fever. Should I come in?
+    </div>
+    <div class="chat-bubble chat-right">
+      <strong>AI Assistant (Drafted):</strong> Hi! Based on what you’ve described, your symptoms could be consistent with a mild viral infection. If your fever goes above 101°F, worsens, or lasts more than 3 days, we recommend coming in. Until then, stay hydrated and rest. Would you like us to check availability later this week?
+    </div>
+    <div class="chat-bubble chat-left">
+      <strong>Nurse:</strong> ✓ Reviewed and Sent.
+    </div>
+  </section>
+
+  <!-- Why It’s Easy -->
+  <section class="max-w-4xl mx-auto px-6 py-16 bg-blue-50 rounded-xl shadow-md">
+    <h2 class="text-3xl font-bold text-orange-600 mb-6">Why It’s Easy to Use at McKinley</h2>
+    <ul class="space-y-4 text-lg text-blue-900">
+      <li>✅ No app download — runs in browser or inside clinic's inbox system</li>
+      <li>✅ Nurse reviews and edits in 1 click</li>
+      <li>✅ Can be turned on/off daily — no commitment required</li>
+      <li>✅ Hosted on a secure, private endpoint (HIPAA-safe)</li>
+    </ul>
+    <p class="mt-6 text-md">Our goal is to make the nurse's day easier — not replace them. We handle the boring messages, so they can focus on care.</p>
+  </section>
+
+  <!-- Vision -->
+  <section class="max-w-4xl mx-auto px-6 py-16">
+    <h2 class="text-3xl font-bold text-orange-600 mb-6">Vision Timeline</h2>
+    <div class="grid md:grid-cols-3 gap-6 text-center">
+      <div>
+        <h3 class="text-xl font-semibold text-orange-500">Phase 1</h3>
+        <p>Pilot at McKinley Health Center (UIUC)</p>
+      </div>
+      <div>
+        <h3 class="text-xl font-semibold text-orange-500">Phase 2</h3>
+        <p>Expand to multiple student clinics across universities</p>
+      </div>
+      <div>
+        <h3 class="text-xl font-semibold text-orange-500">Phase 3</h3>
+        <p>Open-source non-diagnostic AI triage tool</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Partner -->
+  <section id="partner" class="max-w-4xl mx-auto px-6 py-16">
+    <h2 class="text-3xl font-bold text-orange-600 mb-4">Sponsor or Partner with Us</h2>
+    <p class="text-lg mb-4">This project is not for profit. It’s about improving student care and showcasing how AI can responsibly support clinicians. We're actively seeking:</p>
+    <ul class="list-disc list-inside text-lg space-y-2">
+      <li>💻 End-of-life servers or compute support (NVIDIA, Intel, etc.)</li>
+      <li>📡 Partnerships with campus clinics</li>
+       <li>📣 Sponsors to help us scale and share our findings</li>
+    </ul>
+    <p class="mt-6 text-lg">Email us at <strong>hello@illinipromptnurse.org</strong> or message on LinkedIn to get involved.</p>
+  </section>
+
+  <!-- Built With -->
+  <section class="max-w-4xl mx-auto px-6 py-8">
+    <h2 class="text-2xl font-bold text-orange-600 mb-4">Built With</h2>
+    <div class="flex flex-wrap gap-6 items-center justify-center">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/openai/openai-original.svg" alt="OpenAI" class="h-10"/>
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tailwindcss/tailwindcss-plain.svg" alt="Tailwind CSS" class="h-10"/>
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg" alt="JavaScript" class="h-10"/>
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg" alt="HTML5" class="h-10"/>
+    </div>
+  </section>
+
+  <footer class="bg-[#13294B] text-white text-center py-6">
+    &copy; <span id="year"></span> Illini Prompt Nurse. Designed by students for students.
+  </footer>
+
+  <script>
+    // year
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
