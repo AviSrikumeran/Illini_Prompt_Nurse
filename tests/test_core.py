@@ -56,4 +56,3 @@ def test_run_gpt_disclaimer_and_cache():
     assert first["priority"] == "high"
     second = run_gpt("s2", "I have chest pain")
     assert second["cached"] is True
-
