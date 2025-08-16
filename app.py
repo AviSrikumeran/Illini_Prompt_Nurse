@@ -5,9 +5,13 @@ from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
+from dotenv import load_dotenv
 import os
 from typing import Dict
 import openai
+
+load_dotenv()
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 from core import (
     is_message_relevant,
@@ -92,6 +96,7 @@ async def upload_file(file: UploadFile = File(...)):
 def generate_stub_response(message: str) -> tuple[str, dict]:
     """Call OpenAI's ChatCompletion API and return text plus metadata."""
     result = openai.ChatCompletion.create(
+        api_key=OPENAI_API_KEY,
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": message}],
     )
