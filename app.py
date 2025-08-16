@@ -7,6 +7,7 @@ from pydantic import BaseModel
 
 import os
 from typing import Dict
+import openai
 
 from core import (
     is_message_relevant,
@@ -52,21 +53,27 @@ async def handle_message(req: MessageRequest):
 
     key = make_cache_key(req.student_id, req.message)
     if key in CACHE:
-        return {"response": CACHE[key]["response"], "cached": True}
+        cached_entry = CACHE[key]
+        return {
+            "response": cached_entry["response"],
+            "cached": True,
+            "metadata": cached_entry.get("metadata"),
+        }
 
     cleaned = sanitize_message(req.message)
-    response_text = generate_stub_response(cleaned)
+    response_text, metadata = generate_stub_response(cleaned)
 
     if disclaimer := disclaimer_for(cleaned):
         response_text = f"{disclaimer} {response_text}"
 
-    CACHE[key] = {"response": response_text}
+    CACHE[key] = {"response": response_text, "metadata": metadata}
 
     data = {
         "response": response_text,
         "priority": triage_priority(cleaned),
         "appointment_intent": recognize_appointment_intent(cleaned),
         "cached": False,
+        "metadata": metadata,
     }
     return data
 
@@ -82,12 +89,15 @@ async def upload_file(file: UploadFile = File(...)):
     return {"filename": file.filename, "size": len(contents)}
 
 
-def generate_stub_response(message: str) -> str:
-    """Placeholder for GPT call; returns deterministic stub."""
-    # In production this would call OpenAI's API.
-    if "chest pain" in message.lower():
-        return "However, based on the symptoms you’ve described, you might consider visiting in person if symptoms worsen or persist."
-    return "Thanks for your message. A nurse will review your information soon."
+def generate_stub_response(message: str) -> tuple[str, dict]:
+    """Call OpenAI's ChatCompletion API and return text plus metadata."""
+    result = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role": "user", "content": message}],
+    )
+    text = result.choices[0].message["content"].strip()
+    metadata = {"id": result.id, "model": result.model, "usage": result.usage}
+    return text, metadata
 
 
 @app.get("/")
