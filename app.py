@@ -2,8 +2,15 @@
 from __future__ import annotations
 
 import os
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+
+try:
+    # Third‑party libraries used by the demo backend.
+    from flask import Flask, request, jsonify
+    from flask_cors import CORS
+except ModuleNotFoundError as exc:  # pragma: no cover - import error path
+    raise RuntimeError(
+        "Flask and flask-cors must be installed.  Run `pip install -r requirements.txt`"
+    ) from exc
 
 from core import run_gpt
 
