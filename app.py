@@ -1,12 +1,12 @@
 """FastAPI wrapper for Illini Prompt Nurse prototype."""
 from __future__ import annotations
 
-from fastapi import FastAPI, UploadFile, File, HTTPException
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel
-
 import os
 from typing import Dict
+
+from fastapi import FastAPI, UploadFile, File
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 
 from core import (
     is_message_relevant,
@@ -82,15 +82,13 @@ async def upload_file(file: UploadFile = File(...)):
     return {"filename": file.filename, "size": len(contents)}
 
 
-def generate_stub_response(message: str) -> str:
-    """Placeholder for GPT call; returns deterministic stub."""
-    # In production this would call OpenAI's API.
-    if "chest pain" in message.lower():
-        return "However, based on the symptoms you’ve described, you might consider visiting in person if symptoms worsen or persist."
-    return "Thanks for your message. A nurse will review your information soon."
-
-
 @app.get("/")
 async def root():
     return {"message": "Illini Prompt Nurse API"}
 
+
+def generate_stub_response(message: str) -> str:
+    """Placeholder for GPT call; returns deterministic stub."""
+    if "chest pain" in message.lower():
+        return "However, based on the symptoms you’ve described, you might consider visiting in person if symptoms worsen or persist."
+    return "Thanks for your message. A nurse will review your information soon."

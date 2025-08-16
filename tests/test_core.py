@@ -8,6 +8,8 @@ from core import (
     disclaimer_for,
     sanitize_message,
     make_cache_key,
+    run_gpt,
+    CACHE,
 )
 
 
@@ -41,3 +43,16 @@ def test_cache_key_consistency():
     k2 = make_cache_key("123", "hello")
     assert k1 == k2
 
+
+def test_run_gpt_irrelevant():
+    result = run_gpt("s1", "I like cows")
+    assert "not an appropriate" in result["response"]
+
+
+def test_run_gpt_disclaimer_and_cache():
+    CACHE.clear()
+    first = run_gpt("s2", "I have chest pain")
+    assert "Illini Prompt Nurse is not legally allowed" in first["response"]
+    assert first["priority"] == "high"
+    second = run_gpt("s2", "I have chest pain")
+    assert second["cached"] is True
