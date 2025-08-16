@@ -7,7 +7,13 @@ simple and stateless so they can be unit tested.
 from __future__ import annotations
 
 from typing import Tuple
+import os
 import re
+import openai
+from dotenv import load_dotenv
+
+load_dotenv()
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Keywords for simple heuristics
 IRRELEVANT_PATTERNS = [
