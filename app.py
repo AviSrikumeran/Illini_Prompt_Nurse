@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from dotenv import load_dotenv
@@ -24,6 +25,17 @@ from core import (
 )
 
 app = FastAPI(title="Illini Prompt Nurse")
+
+# Enable CORS so the API can be accessed from a browser-based frontend.
+# This middleware handles preflight OPTIONS requests and sets the proper
+# Access-Control-* headers in responses.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, restrict this to trusted origins.
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Simple in-memory cache and storage
 CACHE: Dict[str, Dict[str, str]] = {}
