@@ -1,17 +1,17 @@
 """FastAPI wrapper for Illini Prompt Nurse prototype."""
 from __future__ import annotations
 
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from dotenv import load_dotenv
 import os
+import openai
 from typing import Dict
-from openai import OpenAI
 
 load_dotenv()
-client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 from core import (
     is_message_relevant,
@@ -46,7 +46,6 @@ async def handle_message(req: MessageRequest):
         )
 
     if contains_crisis_language(req.message):
-        # In real system, trigger escalation workflow.
         return JSONResponse(
             {
                 "response": "Your message has been forwarded to the Mental Health Office for urgent review.",
@@ -89,22 +88,24 @@ async def upload_file(file: UploadFile = File(...)):
     file_path = os.path.join(UPLOAD_DIR, file.filename)
     with open(file_path, "wb") as f:
         f.write(contents)
-    # Metadata extraction would happen here.
     return {"filename": file.filename, "size": len(contents)}
 
 
 def generate_stub_response(message: str) -> tuple[str, dict]:
     """Call OpenAI's ChatCompletion API and return text plus metadata."""
-    result = client.chat.completions.create(
+    result = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": message}],
     )
     text = result.choices[0].message["content"].strip()
-    metadata = {"id": result.id, "model": result.model, "usage": result.usage}
+    metadata = {
+        "id": result.id,
+        "model": result.model,
+        "usage": dict(result.usage),
+    }
     return text, metadata
 
 
 @app.get("/")
 async def root():
     return {"message": "Illini Prompt Nurse API"}
-
