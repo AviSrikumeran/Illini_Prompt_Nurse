@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Illini Prompt Nurse</title>
+  <meta name="description" content="An AI triage assistant that drafts nurse‑reviewed replies — reducing bottlenecks, not replacing care." />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      /* UIUC palette only */
+      --navy: #13294B;
+      --orange: #FF552E;
+      --white: #ffffff;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: var(--navy); color: var(--white); overflow-x: hidden; }
+
+    /* ---------- Global layout ---------- */
+    .container { width: 100%; max-width: 80rem; margin-left: auto; margin-right: auto; padding-left: 1.5rem; padding-right: 1.5rem; }
+    .section { padding: 4rem 0; }
+
+    /* ---------- Background parallax tapes (navy tints only) ---------- */
+    .bg-parallax { position: fixed; inset: -15vh -15vw; z-index: -2; pointer-events: none; }
+    .bg-parallax .tape { position: absolute; left: 50%; transform-origin: left center; width: 180vw; height: 46px; opacity: 1; border-radius: 10px; }
+    .bg-parallax .tape::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background:
+      linear-gradient(180deg,
+        rgba(255,255,255,0.10) 0%,
+        rgba(255,255,255,0.04) 50%,
+        rgba(255,255,255,0.10) 100%);
+      /* soft feather */
+      filter: blur(4px);
+    }
+    /* subtle orange edge line */
+    .bg-parallax .tape::after { content: ""; position: absolute; inset: auto 0 0 0; height: 2px; border-radius: 2px; background: linear-gradient(90deg, var(--orange), rgba(255,85,46,0.0)); opacity: .65; }
+
+    .t1 { top: 8vh; transform: translateX(-50%) rotate(-18deg); }
+    .t2 { top: 18vh; transform: translateX(-50%) rotate(9deg); }
+    .t3 { top: 36vh; transform: translateX(-50%) rotate(-5deg); }
+    .t4 { top: 54vh; transform: translateX(-50%) rotate(16deg); }
+    .t5 { top: 72vh; transform: translateX(-50%) rotate(-12deg); }
+
+    /* ---------- Cards (glass on navy) ---------- */
+    .card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.10); border-radius: 18px; box-shadow: 0 18px 48px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(255,255,255,0.04); }
+    .card:hover { box-shadow: 0 22px 60px rgba(0,0,0,0.40), inset 0 0 0 1px rgba(255,255,255,0.06); }
+
+    /* ---------- Section dividers (orange→navy using allowed colors only) ---------- */
+    .divider { height: 2px; border-radius: 9999px; background: linear-gradient(90deg, var(--orange), rgba(255,85,46,0.0)); opacity: .9; }
+
+    /* ---------- Buttons ---------- */
+    .btn { background: var(--orange); color: var(--white); font-weight: 700; border-radius: 10px; padding: .9rem 1.2rem; transition: transform .06s ease, box-shadow .25s ease, filter .25s ease; box-shadow: 0 8px 16px rgba(255,85,46,0.35); }
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 12px 24px rgba(255,85,46,0.45); filter: saturate(1.05); }
+    .btn:active { transform: translateY(0); box-shadow: 0 6px 12px rgba(255,85,46,0.35); }
+    .btn-outline { background: transparent; border: 1.5px solid var(--orange); color: var(--white); }
+
+    /* ---------- Hero ---------- */
+    .hero-title { font-weight: 900; letter-spacing: .2px; }
+    .hero-sub { color: rgba(255,255,255,0.78); max-width: 60ch; }
+    .hero-underline { height: 3px; width: 170px; border-radius: 999px; background: linear-gradient(90deg, var(--orange), rgba(255,85,46,0.0)); margin-top: 14px; }
+
+    /* ---------- Disclaimer ribbon & marquee ---------- */
+    .ribbon { background: rgba(255,255,255,0.06); border-top: 1px solid rgba(255,255,255,0.12); border-bottom: 1px solid rgba(255,255,255,0.12); }
+    .marquee { position: relative; overflow: hidden; height: 44px; display: flex; align-items: center; }
+    .marquee-inner { display: inline-flex; gap: 1.5rem; white-space: nowrap; will-change: transform; }
+
+    /* ---------- Chat ---------- */
+    .chat { display: grid; grid-template-rows: auto 1fr auto; min-height: 520px; }
+    .chat-header { display: flex; align-items: center; gap: .75rem; padding: .85rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .avatar { width: 34px; height: 34px; border-radius: 9999px; background: var(--white); display: grid; place-items: center; color: var(--navy); font-weight: 800; border: 2px solid var(--orange); }
+    .status-dot { width: 8px; height: 8px; border-radius: 9999px; background: var(--orange); display: inline-block; margin-right: 6px; }
+    .badge { font-size: .75rem; border: 1px solid rgba(255,255,255,0.20); padding: .18rem .45rem; border-radius: 9999px; color: rgba(255,255,255,0.88); }
+
+    .chat-body { padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; gap: .75rem; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00)); }
+    .msg { max-width: 78%; padding: .75rem .95rem; border-radius: 14px; line-height: 1.35; font-size: .975rem; position: relative; }
+    .msg .meta { margin-top: .35rem; font-size: .72rem; opacity: .75; }
+    .msg-user { align-self: flex-end; background: var(--white); color: var(--navy); border: 1px solid rgba(19,41,75,0.15); }
+    .msg-ai { align-self: flex-start; background: rgba(255,255,255,0.06); color: var(--white); border: 1px solid rgba(255,255,255,0.10); }
+
+    .typing { align-self: flex-start; display: inline-flex; gap: 6px; padding: .6rem .8rem; border-radius: 9999px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); }
+    .typing span { width: 6px; height: 6px; border-radius: 9999px; background: var(--white); opacity: .8; display: inline-block; animation: blink 1.2s infinite ease-in-out; }
+    .typing span:nth-child(2) { animation-delay: .15s; }
+    .typing span:nth-child(3) { animation-delay: .3s; }
+    @keyframes blink { 0%, 80%, 100% { opacity: .25; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-2px); } }
+
+    .chat-footer { display: grid; grid-template-columns: 1fr auto; gap: .6rem; padding: .8rem; border-top: 1px solid rgba(255,255,255,0.08); }
+    .input { width: 100%; background: rgba(255,255,255,0.06); color: var(--white); border: 1px solid rgba(255,255,255,0.18); border-radius: 12px; padding: .9rem 1rem; outline: none; }
+    .input::placeholder { color: rgba(255,255,255,0.6); }
+    .input:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(255,85,46,0.25); }
+
+    .hint { font-size: .75rem; opacity: .75; margin-top: .25rem; }
+
+    /* Upload chip */
+    .upload-row { display: flex; flex-wrap: wrap; gap: .5rem; padding: .6rem 1rem .2rem; }
+    .chip { display: inline-flex; align-items: center; gap: .5rem; border: 1px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.06); color: var(--white); border-radius: 9999px; padding: .35rem .65rem; font-size: .78rem; }
+    .chip .dot { width: 8px; height: 8px; border-radius: 9999px; background: var(--orange); }
+    .progress { height: 4px; border-radius: 9999px; background: rgba(255,255,255,0.14); overflow: hidden; }
+    .progress .bar { width: 60%; height: 100%; background: var(--orange); animation: grow 1.2s ease-in-out infinite alternate; }
+    @keyframes grow { from { width: 20%; } to { width: 85%; } }
+
+    /* Starter prompt chips */
+    .prompt-chips { display: flex; flex-wrap: wrap; gap: .5rem; padding: 0 1rem .5rem; }
+    .prompt { border: 1px solid rgba(255,255,255,0.18); color: var(--white); background: rgba(255,255,255,0.06); border-radius: 9999px; font-size: .8rem; padding: .4rem .6rem; cursor: pointer; }
+    .prompt:hover { border-color: var(--orange); }
+
+    /* Built-with row */
+    .bw img { filter: grayscale(1) contrast(1.05); opacity: .9; transition: opacity .2s ease, filter .2s ease; }
+    .bw img:hover { filter: none; opacity: 1; }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      .marquee-inner { animation: none !important; }
+      .progress .bar { animation: none !important; }
+    }
+
+    /* Mobile */
+    @media (max-width: 640px) {
+      .msg { max-width: 88%; }
+      .bg-parallax .tape { height: 38px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Parallax background (navy tints only) -->
+  <div class="bg-parallax" id="bgParallax" aria-hidden="true">
+    <div class="tape t1"></div>
+    <div class="tape t2"></div>
+    <div class="tape t3"></div>
+    <div class="tape t4"></div>
+    <div class="tape t5"></div>
+  </div>
+
+  <!-- Header (non-sticky, per user) -->
+  <header class="section">
+    <div class="container">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <img src="assets/logo.png" alt="Illini Prompt Nurse Logo" class="w-12 h-12 rounded-xl border border-white/20 shadow-md" loading="lazy" />
+          <div>
+            <h1 class="hero-title text-3xl sm:text-4xl">Illini Prompt Nurse</h1>
+            <div class="hero-underline"></div>
+            <p class="hero-sub mt-3 text-sm sm:text-base">An AI triage assistant that drafts nurse‑reviewed replies — reducing bottlenecks, not replacing care.</p>
+          </div>
+        </div>
+        <div class="hidden sm:flex gap-3">
+          <a href="#example" class="btn">Try the Live Demo</a>
+          <a href="#partner" class="btn btn-outline">Sponsor the Pilot</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Disclaimer ribbon (UIUC colors only) -->
+  <div class="ribbon">
+    <div class="container">
+      <div class="marquee" aria-hidden="true">
+        <div class="marquee-inner" id="marqueeInner">
+          <span class="text-sm opacity-90">⚠️ Non‑diagnostic • Nurse‑reviewed • Privacy‑first • Illini powered</span>
+          <span class="text-sm opacity-90">⚠️ Non‑diagnostic • Nurse‑reviewed • Privacy‑first • Illini powered</span>
+          <span class="text-sm opacity-90">⚠️ Non‑diagnostic • Nurse‑reviewed • Privacy‑first • Illini powered</span>
+          <span class="text-sm opacity-90">⚠️ Non‑diagnostic • Nurse‑reviewed • Privacy‑first • Illini powered</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Problem section as a card -->
+  <section class="section">
+    <div class="container">
+      <div class="card p-6 md:p-8">
+        <h2 class="text-2xl sm:text-3xl font-bold text-[var(--orange)] mb-3">Problem We’re Solving</h2>
+        <div class="grid md:grid-cols-3 gap-6">
+          <p class="md:col-span-2 text-[rgba(255,255,255,0.86)] leading-relaxed">Every day, UIUC students reach out to McKinley Health Center with simple health questions. Most of these don’t require a full appointment — but answering each message takes up valuable nurse time. This slows down care and increases student frustration.</p>
+          <ul class="space-y-2 text-sm">
+            <li class="flex items-start gap-2"><span class="mt-1 inline-block w-2 h-2 rounded-full" style="background: var(--orange);"></span> Reduce routine message load</li>
+            <li class="flex items-start gap-2"><span class="mt-1 inline-block w-2 h-2 rounded-full" style="background: var(--orange);"></span> Faster student responses</li>
+            <li class="flex items-start gap-2"><span class="mt-1 inline-block w-2 h-2 rounded-full" style="background: var(--orange);"></span> Keep nurses focused on care</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider container"></div>
+
+  <!-- LIVE CHATBOT (Upgraded UI, same endpoints/IDs) -->
+  <section id="example" class="section">
+    <div class="container">
+      <div class="card">
+        <!-- Chat header -->
+        <div class="chat-header">
+          <div class="avatar" aria-hidden="true">N</div>
+          <div>
+            <div class="text-sm font-semibold">Nurse AI <span class="badge ml-2">reviewed</span></div>
+            <div class="text-xs opacity-75"><span class="status-dot"></span>Typically responds in seconds</div>
+          </div>
+        </div>
+
+        <!-- Upload inline row -->
+        <div class="upload-row" id="uploadRow">
+          <form id="upload-form" class="flex items-center gap-2" title="Upload a PDF or image (e.g. insurance, note)">
+            <input type="file" id="file-input" accept=".pdf,.png,.jpg,.jpeg" class="text-sm" />
+            <button type="submit" class="btn">Upload</button>
+          </form>
+        </div>
+
+        <!-- Starter prompts -->
+        <div class="prompt-chips">
+          <button class="prompt" data-text="What appointment types are available this week?">What appointment types are available this week?</button>
+          <button class="prompt" data-text="How do I submit my insurance card for verification?">How do I submit my insurance card for verification?</button>
+          <button class="prompt" data-text="Can you draft a response to a student asking about a flu shot?">Draft a response about a flu shot</button>
+        </div>
+
+        <!-- Chat body -->
+        <div id="chat-window" class="chat-body"></div>
+
+        <!-- Composer -->
+        <form id="chat-form" class="chat-footer">
+          <input id="user-input" type="text" class="input" placeholder="Ask about appointment types, insurance uploads, or symptoms (non‑diagnostic)…" required />
+          <button type="submit" id="sendBtn" class="btn">Send</button>
+          <div class="col-span-2 hint">Press <span class="font-semibold">Enter</span> to send</div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider container"></div>
+
+  <!-- Why easy / timeline as cards -->
+  <section class="section">
+    <div class="container grid md:grid-cols-2 gap-6">
+      <div class="card p-6 md:p-8">
+        <h2 class="text-2xl sm:text-3xl font-bold text-[var(--orange)] mb-4">Why It’s Easy to Use at McKinley</h2>
+        <ul class="space-y-3 text-[rgba(255,255,255,0.90)]">
+          <li>✅ No app download — runs in browser or inside clinic's inbox system</li>
+          <li>✅ Nurse reviews and edits in 1 click</li>
+          <li>✅ Can be turned on/off daily — no commitment required</li>
+          <li>✅ Hosted on a secure, private endpoint (HIPAA‑safe)</li>
+        </ul>
+      </div>
+      <div class="card p-6 md:p-8">
+        <h2 class="text-2xl sm:text-3xl font-bold text-[var(--orange)] mb-4">Vision Timeline</h2>
+        <div class="space-y-4">
+          <div class="p-4 rounded-lg border border-white/10 bg-[rgba(255,255,255,0.03)]">
+            <h3 class="text-xl font-semibold" style="color: var(--white)">Phase 1</h3>
+            <p class="opacity-90">Pilot at McKinley Health Center (UIUC)</p>
+          </div>
+          <div class="p-4 rounded-lg border border-white/10 bg-[rgba(255,255,255,0.03)]">
+            <h3 class="text-xl font-semibold" style="color: var(--white)">Phase 2</h3>
+            <p class="opacity-90">Expand to multiple student clinics across universities</p>
+          </div>
+          <div class="p-4 rounded-lg border border-white/10 bg-[rgba(255,255,255,0.03)]">
+            <h3 class="text-xl font-semibold" style="color: var(--white)">Phase 3</h3>
+            <p class="opacity-90">Open‑source non‑diagnostic AI triage tool</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Partner / Sponsor -->
+  <section id="partner" class="section">
+    <div class="container">
+      <div class="card p-6 md:p-8">
+        <h2 class="text-2xl sm:text-3xl font-bold text-[var(--orange)] mb-3">Sponsor or Partner with Us</h2>
+        <p class="mb-4 text-[rgba(255,255,255,0.90)]">This project is not for profit. It’s about improving student care and showcasing how AI can responsibly support clinicians. We're actively seeking:</p>
+        <ul class="list-disc list-inside space-y-2">
+          <li>💻 End‑of‑life servers or compute support (NVIDIA, Intel, etc.)</li>
+          <li>📡 Partnerships with campus clinics</li>
+          <li>📣 Sponsors to help us scale and share our findings</li>
+        </ul>
+        <p class="mt-6">Email us at <strong>hello@illinipromptnurse.org</strong> or message on LinkedIn to get involved.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Built with -->
+  <section class="section">
+    <div class="container">
+      <div class="card p-6">
+        <h2 class="text-xl font-bold mb-4" style="color: var(--orange)">Built With</h2>
+        <div class="bw flex flex-wrap items-center justify-center gap-8">
+          <img src="assets/OpenAIlogo.png" alt="OpenAI" class="h-12" />
+          <img src="assets/Tailwindlogo.png" alt="Tailwind CSS" class="h-12" />
+          <img src="assets/Pythonlogo.png" alt="Python" class="h-12" />
+          <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg" alt="JavaScript" class="h-10" />
+          <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg" alt="HTML5" class="h-10" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="section pt-0">
+    <div class="container text-center text-sm opacity-85">
+      &copy; <span id="year"></span> Illini Prompt Nurse. Designed by students for students.
+    </div>
+  </footer>
+
+  <script>
+    // Dynamic year
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Seamless marquee
+    (function(){
+      const inner = document.getElementById('marqueeInner');
+      if (!inner) return;
+      inner.innerHTML = inner.innerHTML + inner.innerHTML; // duplicate for seamless scroll
+      const animate = () => {
+        let offset = 0; const speed = 34; // px/sec
+        const step = (ts) => {
+          offset -= (speed / 60);
+          inner.style.transform = 'translateX(' + offset + 'px)';
+          if (Math.abs(offset) > inner.scrollWidth / 2) offset = 0;
+          requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      };
+      // Respect reduced motion
+      const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!reduce) animate();
+    })();
+
+    // Parallax background (subtle)
+    (function(){
+      const wrap = document.getElementById('bgParallax');
+      if (!wrap) return;
+      const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reduce) return;
+      let ticking = false;
+      function onScroll(){
+        if (ticking) return; ticking = true;
+        requestAnimationFrame(()=>{
+          const y = window.scrollY || window.pageYOffset;
+          wrap.style.transform = 'translateY(' + (-y * 0.20) + 'px)';
+          ticking = false;
+        });
+      }
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+    })();
+
+    // Chat helpers
+    const chatWindow = document.getElementById('chat-window');
+    const chatForm = document.getElementById('chat-form');
+    const userInput = document.getElementById('user-input');
+    const sendBtn = document.getElementById('sendBtn');
+
+    function nowTime(){
+      const d = new Date();
+      return d.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+    }
+
+    function appendMsg(text, role){
+      const div = document.createElement('div');
+      div.className = 'msg ' + (role === 'user' ? 'msg-user' : 'msg-ai');
+      div.innerHTML = `<div>${text}</div><div class="meta">${role === 'user' ? 'You' : 'Nurse AI'} • ${nowTime()}</div>`;
+      chatWindow.appendChild(div);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+      return div;
+    }
+
+    function showTyping(){
+      const holder = document.createElement('div');
+      holder.className = 'typing';
+      holder.innerHTML = '<span></span><span></span><span></span>';
+      chatWindow.appendChild(holder);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+      return holder;
+    }
+
+    // Starter prompts click-to-fill
+    document.querySelectorAll('.prompt').forEach(btn => {
+      btn.addEventListener('click', () => {
+        userInput.value = btn.dataset.text || btn.textContent.trim();
+        userInput.focus();
+      });
+    });
+
+    // Send message (keeps your existing endpoint)
+    chatForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const message = userInput.value.trim();
+      if (!message) return;
+      appendMsg(message, 'user');
+      userInput.value = '';
+
+      const typingEl = showTyping();
+      sendBtn.disabled = true;
+
+      try {
+        const response = await fetch('http://127.0.0.1:8000/message', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ student_id: 'demo-user', message })
+        });
+        const data = await response.json();
+        typingEl.remove();
+        appendMsg(data.response || 'No response received.', 'ai');
+      } catch(err){
+        typingEl.remove();
+        appendMsg('There was a network error. Please try again.', 'ai');
+      } finally {
+        sendBtn.disabled = false;
+      }
+    });
+
+    // Upload (inline chip + indeterminate progress; same endpoint)
+    const uploadForm = document.getElementById('upload-form');
+    const fileInput = document.getElementById('file-input');
+    const uploadRow = document.getElementById('uploadRow');
+
+    uploadForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const file = fileInput.files && fileInput.files[0];
+      if (!file) return;
+
+      // Chip UI
+      const chip = document.createElement('div');
+      chip.className = 'chip';
+      chip.innerHTML = `<span class="dot" aria-hidden="true"></span><span>${file.name}</span><span class="opacity-75">(${file.size} bytes)</span>`;
+      const progress = document.createElement('div');
+      progress.className = 'progress w-full mt-2';
+      const bar = document.createElement('div');
+      bar.className = 'bar';
+      progress.appendChild(bar);
+
+      const chipWrap = document.createElement('div');
+      chipWrap.className = 'w-full max-w-md';
+      chipWrap.appendChild(chip);
+      chipWrap.appendChild(progress);
+      uploadRow.appendChild(chipWrap);
+
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        const res = await fetch('http://127.0.0.1:8000/upload', { method: 'POST', body: formData });
+        const result = await res.json();
+        // Success UI
+        progress.remove();
+        chip.innerHTML = `<span class="dot" aria-hidden="true" style="background: var(--orange)"></span><span>Uploaded:</span> <strong>${result.filename || file.name}</strong> <span class="opacity-75">(${(result.size || file.size)} bytes)</span>`;
+        // Also drop a system note into chat
+        appendMsg(`File uploaded: ${result.filename || file.name} (${result.size || file.size} bytes)`, 'ai');
+        fileInput.value = '';
+      } catch(err){
+        progress.remove();
+        chip.innerHTML = `<span class="dot" aria-hidden="true" style="background: var(--orange)"></span><strong>Upload failed</strong>`;
+        appendMsg('Upload failed. Please try again.', 'ai');
+      }
+    });
+  </script>
+</body>
+</html>
